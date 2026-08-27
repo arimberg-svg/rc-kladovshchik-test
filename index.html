@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Тест кладовщика РЦ — У Михалыча</title>
+  <meta name="description" content="25 вопросов для кладовщиков распределительного центра: регламент РЦ, упаковка, сложные ситуации, честность и усталость." />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section id="screen-start" class="panel">
+      <p class="eyebrow">Сеть «У Михалыча» · РЦ Тимуровцев, 1А стр. 8</p>
+      <h1>Тест <span>кладовщика РЦ</span></h1>
+      <p class="lead">
+        25 вопросов: регламент РЦ, приёмка, сборка, маркировка, упаковка и паллет,
+        плюс сложные ситуации на рампе. Внутри — проверка на честность и на то,
+        что делаете в конце 11-часовой смены, когда уже устали.
+      </p>
+      <ul class="meta">
+        <li>25 вопросов · один правильный ответ · порядок каждый раз другой</li>
+        <li>Норма — 20 из 25. Ошибка в блоке честности — красный флаг даже при зачёте</li>
+        <li>Балл сразу на экране, отчёт уходит на arimberg@gmail.com</li>
+      </ul>
+
+      <form id="start-form" class="start-form" novalidate>
+        <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" />
+        <div class="form-grid">
+          <label class="name-field">
+            <span>Имя <em>*</em></span>
+            <input name="first_name" type="text" maxlength="80" required placeholder="Иван" autocomplete="given-name" />
+          </label>
+          <label class="name-field">
+            <span>Фамилия <em>*</em></span>
+            <input name="last_name" type="text" maxlength="80" required placeholder="Иванов" autocomplete="family-name" />
+          </label>
+        </div>
+        <label class="name-field">
+          <span>Должность <em>*</em></span>
+          <select name="position" required>
+            <option value="" disabled selected>Выберите должность</option>
+            <option>Кладовщик РЦ</option>
+            <option>Оператор склада</option>
+            <option>Грузчик РЦ</option>
+            <option>Руководитель смены РЦ</option>
+            <option>Другое</option>
+          </select>
+        </label>
+        <label class="name-field">
+          <span>Смена <em>*</em></span>
+          <input name="shift" type="text" maxlength="100" required placeholder="Например, 27.08 день" autocomplete="off" />
+        </label>
+        <p class="form-note">Нажимая «Начать тест», вы подтверждаете, что имя, фамилия, должность, смена, балл и все ответы будут отправлены на arimberg@gmail.com.</p>
+        <p id="form-error" class="form-error hidden">Заполните имя, фамилию, должность и смену — поля обязательные.</p>
+        <button type="submit" class="btn primary" id="btn-start">Начать тест</button>
+      </form>
+    </section>
+
+    <section id="screen-quiz" class="panel hidden" aria-live="polite">
+      <div class="topbar">
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="topmeta">
+          <span id="q-counter">1 / 25</span>
+          <span id="q-topic" class="topic"></span>
+        </div>
+      </div>
+      <h2 id="q-text"></h2>
+      <div id="options" class="options" role="radiogroup"></div>
+      <div class="nav">
+        <button type="button" class="btn ghost" id="btn-prev" disabled>Назад</button>
+        <button type="button" class="btn primary" id="btn-next" disabled>Далее</button>
+      </div>
+    </section>
+
+    <section id="screen-result" class="panel hidden">
+      <p class="eyebrow">Результат</p>
+      <h1 id="score-title">Ваш результат</h1>
+      <p class="scoreline"><span id="score-num">0</span><span class="slash">/</span><span id="score-total">25</span></p>
+      <p id="score-percent" class="score-percent"></p>
+      <p id="score-verdict" class="lead"></p>
+      <p id="flag-banner" class="flag-banner hidden"></p>
+      <p id="mail-status" class="mail-status" aria-live="polite"></p>
+
+      <div id="summary-cards" class="summary-cards"></div>
+      <h3 class="section-title">По темам</h3>
+      <div id="topic-stats" class="topic-stats"></div>
+      <h3 class="section-title">Разбор ответов</h3>
+      <p class="review-hint">Сначала ошибки, затем верные.</p>
+      <div id="review" class="review"></div>
+      <button type="button" class="btn primary" id="btn-restart">Пройти ещё раз</button>
+    </section>
+  </main>
+
+  <p class="foot">Кладовщик РЦ · 25 вопросов · У Михалыча</p>
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
