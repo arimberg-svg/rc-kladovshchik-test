@@ -9,7 +9,7 @@ let bank = [];
 let questions = [];
 let answers = [];
 let current = 0;
-let profile = { first_name: "", last_name: "", position: "", shift: "" };
+let profile = { first_name: "", last_name: "", position: "" };
 
 const el = {
   start: document.getElementById("screen-start"),
@@ -154,7 +154,7 @@ function buildReport(rows, correct, total, pct) {
       : "Усталость — без срыва процесса",
   ].join("\n");
 
-  const subject = `Тест кладовщика РЦ: ${fullName()} · ${profile.shift} · ${profile.position} · ${correct}/${total}`;
+  const subject = `Тест кладовщика РЦ: ${fullName()} · ${profile.position} · ${correct}/${total}`;
   const message = [
     "Результат теста «Кладовщик РЦ»",
     `Получатель: ${TO_EMAIL}`,
@@ -162,7 +162,6 @@ function buildReport(rows, correct, total, pct) {
     `Имя: ${profile.first_name}`,
     `Фамилия: ${profile.last_name}`,
     `Должность: ${profile.position}`,
-    `Смена: ${profile.shift}`,
     `Балл: ${correct}/${total} (${pct}%)`,
     `Норма: ${PASS} из ${total}`,
     "",
@@ -214,7 +213,6 @@ async function sendResultEmail(report) {
     Имя: profile.first_name,
     Фамилия: profile.last_name,
     Должность: profile.position,
-    Смена: profile.shift,
     Балл: report.score,
     Процент: `${report.pct}%`,
     Норма: `${PASS} из ${questions.length}`,
@@ -316,7 +314,7 @@ function grade() {
     <div class="summary-card ok"><span class="label">Верно</span><span class="value">${correct}</span></div>
     <div class="summary-card bad"><span class="label">Ошибки</span><span class="value">${wrong}</span></div>
     <div class="summary-card"><span class="label">Норма</span><span class="value">${PASS}/${total}</span></div>
-    <div class="summary-card"><span class="label">${escapeHtml(profile.position)} · ${escapeHtml(profile.shift)}</span><span class="value">${pct}%</span></div>
+    <div class="summary-card"><span class="label">${escapeHtml(profile.position)}</span><span class="value">${pct}%</span></div>
   `;
 
   el.topicStats.innerHTML = Object.entries(byTopic)
@@ -356,9 +354,8 @@ el.form.addEventListener("submit", (e) => {
   const first_name = el.form.elements.first_name.value.trim();
   const last_name = el.form.elements.last_name.value.trim();
   const position = el.form.elements.position.value.trim();
-  const shift = el.form.elements.shift.value.trim();
 
-  if (!first_name || !last_name || !position || !shift) {
+  if (!first_name || !last_name || !position) {
     el.formError.classList.remove("hidden");
     return;
   }
@@ -369,7 +366,7 @@ el.form.addEventListener("submit", (e) => {
   }
 
   el.formError.classList.add("hidden");
-  profile = { first_name, last_name, position, shift };
+  profile = { first_name, last_name, position };
   questions = shuffle(bank);
   answers = Array(questions.length).fill(null);
   current = 0;
