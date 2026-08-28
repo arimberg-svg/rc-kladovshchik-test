@@ -204,10 +204,27 @@ async function postJson(url, payload) {
   return data;
 }
 
+async function postFormData(url, payload) {
+  const body = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    body.append(key, String(value ?? ""));
+  });
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+    body,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.success === false) {
+    throw new Error(data.message || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
 async function sendResultEmail(report) {
   el.mailStatus.className = "mail-status";
   el.mailStatus.hidden = false;
-  el.mailStatus.textContent = `Отправляем результат на ${TO_EMAIL}…`;
+  el.mailStatus.textContent = `Отправляем результат на ${TO_EMAIL} по двум каналам…`;
 
   const fields = {
     Имя: profile.first_name,
@@ -225,6 +242,8 @@ async function sendResultEmail(report) {
     subject: report.subject,
     from_name: "Тест кладовщика РЦ",
     email: TO_EMAIL,
+    replyto: TO_EMAIL,
+    botcheck: "",
     ...fields,
     message: report.message,
   };
@@ -233,26 +252,34 @@ async function sendResultEmail(report) {
     _subject: report.subject,
     _captcha: "false",
     _template: "box",
+    _replyto: TO_EMAIL,
     name: fullName(),
     email: TO_EMAIL,
     ...fields,
     message: report.message,
   };
 
-  const [primary, backup] = await Promise.allSettled([
+  const [channel1, channel2] = await Promise.allSettled([
     postJson(WEB3_ENDPOINT, web3Payload),
-    postJson(FORMSUBMIT_ENDPOINT, formsubmitPayload),
+    postFormData(FORMSUBMIT_ENDPOINT, formsubmitPayload),
   ]);
 
-  const primaryOk = primary.status === "fulfilled";
-  const backupOk = backup.status === "fulfilled";
+  const channel1Ok = channel1.status === "fulfilled";
+  const channel2Ok = channel2.status === "fulfilled";
 
-  if (!primaryOk) console.warn("Web3Forms:", primary.reason);
-  if (!backupOk) console.warn("FormSubmit:", backup.reason);
+  if (!channel1Ok) console.warn("Канал 1 Web3Forms:", channel1.reason);
+  if (!channel2Ok) console.warn("Канал 2 FormSubmit:", channel2.reason);
 
-  if (primaryOk || backupOk) {
+  if (channel1Ok && channel2Ok) {
     el.mailStatus.className = "mail-status ok";
-    el.mailStatus.textContent = `Результат отправлен на ${TO_EMAIL}.`;
+    el.mailStatus.textContent = `Результат ушёл на ${TO_EMAIL} по двум каналам.`;
+    return;
+  }
+
+  if (channel1Ok || channel2Ok) {
+    const which = channel1Ok ? "канал 1" : "канал 2";
+    el.mailStatus.className = "mail-status ok";
+    el.mailStatus.textContent = `Результат ушёл на ${TO_EMAIL} (${which} сработал, второй не ответил).`;
     return;
   }
 
