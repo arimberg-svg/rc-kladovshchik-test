@@ -3,28 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Тест кладовщика РЦ — У Михалыча</title>
-  <meta name="description" content="25 вопросов для кладовщиков распределительного центра: регламент РЦ, упаковка, сложные ситуации, честность и усталость." />
+  <title>Тест кладовщика РЦ — Академия УМ</title>
+  <meta name="description" content="Тест должностей склада РЦ: регламент, техника JAC/TOR, честность и порядок, команда и внимание. Все ответы сохраняются в Академии." />
   <meta name="robots" content="noindex,nofollow" />
+  <meta name="published" content="2026-09-22" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/brand.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <header class="top">
+    <a class="brand" href="/">
+      <img class="logo" src="/logo.png" alt="У Михалыча" width="280" height="36" />
+      <span class="brand-text">
+        <h1>Академия УМ</h1>
+        <p class="sub">Тест кладовщика РЦ</p>
+      </span>
+    </a>
+    <div class="header-end">
+      <div class="pub-date">
+        <span class="lbl">опубликовано</span>
+        <time datetime="2026-09-22">22.09.2026</time>
+      </div>
+    </div>
+  </header>
   <main class="shell">
     <section id="screen-start" class="panel">
       <p class="eyebrow">Сеть «У Михалыча» · РЦ Тимуровцев, 1А стр. 8</p>
-      <h1>Тест <span>кладовщика РЦ</span></h1>
+      <h1>Тест <span>должностей склада РЦ</span></h1>
       <p class="lead">
-        25 вопросов: регламент РЦ, приёмка, сборка, маркировка, упаковка и паллет,
-        плюс сложные ситуации на рампе. Внутри — проверка на честность и на то,
-        что делаете в конце 11-часовой смены, когда уже устали.
+        Регламент РЦ и то, что осталось в папке после удаления устаревших инструкций:
+        собеседование кладовщика, онбординг, техника Щорса (JAC CPD16 и TOR WS15H),
+        плюс практика сильной складской команды — честность, 5S, stop-work, near miss.
+        Все ответы пишутся в журнал Академии.
       </p>
       <ul class="meta">
-        <li>25 вопросов · один правильный ответ · порядок каждый раз другой</li>
-        <li>Норма — 20 из 25. Ошибка в блоке честности — красный флаг даже при зачёте</li>
-        <li>Балл сразу на экране, отчёт уходит на arimberg@gmail.com по двум каналам</li>
+        <li>46 вопросов · один правильный ответ · порядок каждый раз другой</li>
+        <li>Норма — 80% (37 из 46). Ошибка в блоке честности — красный флаг даже при зачёте</li>
+        <li>Балл сразу на экране; все ответы сохраняются в Академии, журнал — /admin/results</li>
       </ul>
 
       <form id="start-form" class="start-form" novalidate>
@@ -45,12 +63,15 @@
             <option value="" disabled selected>Выберите должность</option>
             <option>Кладовщик РЦ</option>
             <option>Оператор склада</option>
+            <option>Комплектовщик</option>
             <option>Грузчик РЦ</option>
+            <option>Водитель погрузчика</option>
             <option>Руководитель смены РЦ</option>
+            <option>Руководитель РЦ и логистики</option>
             <option>Другое</option>
           </select>
         </label>
-        <p class="form-note">Нажимая «Начать тест», вы подтверждаете, что имя, фамилия, должность, балл и все ответы будут отправлены на arimberg@gmail.com.</p>
+        <p class="form-note">Нажимая «Начать тест», вы подтверждаете, что имя, фамилия, должность, балл и все ответы будут сохранены в Академии УМ.</p>
         <p id="form-error" class="form-error hidden">Заполните имя, фамилию и должность — поля обязательные.</p>
         <button type="submit" class="btn primary" id="btn-start">Начать тест</button>
       </form>
@@ -62,7 +83,7 @@
           <div class="progress-bar" id="progress-bar"></div>
         </div>
         <div class="topmeta">
-          <span id="q-counter">1 / 25</span>
+          <span id="q-counter">1 / 46</span>
           <span id="q-topic" class="topic"></span>
         </div>
       </div>
@@ -77,7 +98,7 @@
     <section id="screen-result" class="panel hidden">
       <p class="eyebrow">Результат</p>
       <h1 id="score-title">Ваш результат</h1>
-      <p class="scoreline"><span id="score-num">0</span><span class="slash">/</span><span id="score-total">25</span></p>
+      <p class="scoreline"><span id="score-num">0</span><span class="slash">/</span><span id="score-total">46</span></p>
       <p id="score-percent" class="score-percent"></p>
       <p id="score-verdict" class="lead"></p>
       <p id="flag-banner" class="flag-banner hidden"></p>
@@ -93,8 +114,10 @@
     </section>
   </main>
 
-  <p class="foot">Кладовщик РЦ · 25 вопросов · У Михалыча</p>
-  <script src="questions.js?v=5" charset="utf-8"></script>
-  <script src="app.js?v=5" charset="utf-8"></script>
+  <p class="foot">Кладовщик РЦ · 46 вопросов · Академия УМ · Развиваться, чтобы жить</p>
+  <script src="/js/akademia-collect.js?v=20260922"></script>
+  <script src="/js/akademia-shell.js?v=20260921a" defer></script>
+  <script src="questions.js?v=6" charset="utf-8"></script>
+  <script src="app.js?v=6" charset="utf-8"></script>
 </body>
 </html>

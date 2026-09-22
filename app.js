@@ -3,7 +3,10 @@ const WEB3FORMS_KEY = "63b604c9-ac29-414f-bc13-31e194d0efc1";
 const TO_EMAIL = "arimberg@gmail.com";
 const WEB3_ENDPOINT = "https://api.web3forms.com/submit";
 const FORMSUBMIT_ENDPOINT = `https://formsubmit.co/ajax/${TO_EMAIL}`;
-const PASS = 20;
+
+function passMark(total) {
+  return Math.ceil(Number(total) * 0.8);
+}
 
 let bank = [];
 let questions = [];
@@ -145,25 +148,41 @@ function buildReport(rows, correct, total, pct) {
 
   const honestyFails = rows.filter((r) => r.q.flag === "honesty" && !r.ok);
   const fatigueFails = rows.filter((r) => r.q.flag === "fatigue" && !r.ok);
+  const orderFails = rows.filter((r) => r.q.flag === "order" && !r.ok);
+  const pass = passMark(total);
   const flagLines = [
     honestyFails.length
       ? `Честность — КРАСНЫЙ ФЛАГ (${honestyFails.length}): вопросы ${honestyFails.map((r) => r.i + 1).join(", ")}`
       : "Честность — без красного флага",
+    orderFails.length
+      ? `Порядок / 5S (${orderFails.length}): вопросы ${orderFails.map((r) => r.i + 1).join(", ")}`
+      : "Порядок — без срыва",
     fatigueFails.length
       ? `Усталость / срыв процесса (${fatigueFails.length}): вопросы ${fatigueFails.map((r) => r.i + 1).join(", ")}`
       : "Усталость — без срыва процесса",
   ].join("\n");
 
+  const answersPayload = rows.map((r) => ({
+    n: r.i + 1,
+    topic: r.q.topic,
+    flag: r.q.flag || "",
+    question: r.q.q,
+    chosen: optionByLetter(r.q, answers[r.i]) || "—",
+    correct: optionByLetter(r.q, r.q.answer),
+    ok: r.ok,
+  }));
+
   const subject = `Тест кладовщика РЦ: ${fullName()} · ${profile.position} · ${correct}/${total}`;
   const message = [
     "Результат теста «Кладовщик РЦ»",
-    `Получатель: ${TO_EMAIL}`,
+    "Хранение: Академия УМ /admin/results",
+    `Копия на почту: ${TO_EMAIL}`,
     "",
     `Имя: ${profile.first_name}`,
     `Фамилия: ${profile.last_name}`,
     `Должность: ${profile.position}`,
     `Балл: ${correct}/${total} (${pct}%)`,
-    `Норма: ${PASS} из ${total}`,
+    `Норма: ${pass} из ${total} (80%)`,
     "",
     "=== Флаги ===",
     flagLines,
@@ -183,9 +202,55 @@ function buildReport(rows, correct, total, pct) {
     message: clip(message, 50000),
     score: `${correct}/${total}`,
     pct,
+    pass,
     honestyFails,
     fatigueFails,
+    orderFails,
+    answersPayload,
   };
+}
+
+function academyPayload(report) {
+  return {
+    source: (location.pathname || "/").replace(/\/{2,}/g, "/"),
+    title: document.title || "Тест кладовщика РЦ",
+    href: location.href,
+    at: new Date().toISOString(),
+    first_name: profile.first_name,
+    last_name: profile.last_name,
+    name: fullName(),
+    Имя: profile.first_name,
+    Фамилия: profile.last_name,
+    position: profile.position,
+    Должность: profile.position,
+    score: report.score,
+    Балл: report.score,
+    percent: `${report.pct}%`,
+    Процент: `${report.pct}%`,
+    pass: `${report.pass} из ${questions.length}`,
+    Норма: `${report.pass} из ${questions.length}`,
+    subject: report.subject,
+    message: report.message,
+    answers: report.answersPayload,
+    honestyFails: report.honestyFails.map((r) => r.i + 1),
+    fatigueFails: report.fatigueFails.map((r) => r.i + 1),
+    orderFails: report.orderFails.map((r) => r.i + 1),
+  };
+}
+
+async function saveToAcademy(report) {
+  const body = academyPayload(report);
+  const res = await fetch("/api/results", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false || data.success === false) {
+    throw new Error(data.error || data.message || `HTTP ${res.status}`);
+  }
+  return true;
 }
 
 async function postJson(url, payload) {
@@ -232,8 +297,9 @@ async function sendResultEmail(report) {
     Должность: profile.position,
     Балл: report.score,
     Процент: `${report.pct}%`,
-    Норма: `${PASS} из ${questions.length}`,
+    Норма: `${report.pass} из ${questions.length}`,
     Честность: report.honestyFails.length ? `КРАСНЫЙ ФЛАГ ×${report.honestyFails.length}` : "ок",
+    Порядок: report.orderFails.length ? `срыв ×${report.orderFails.length}` : "ок",
     Усталость: report.fatigueFails.length ? `срыв ×${report.fatigueFails.length}` : "ок",
   };
 
@@ -317,21 +383,26 @@ function grade() {
   el.scorePercent.textContent = `${pct}% верных · ошибок: ${wrong}`;
   el.scoreTitle.textContent = `${fullName()}, ваш результат`;
 
+  const pass = report.pass;
   let verdict;
-  if (correct >= PASS) verdict = "Зачёт. Регламент РЦ, упаковка и рамповые ситуации закрыты.";
-  else if (correct >= PASS - 4) verdict = "Почти зачёт. Разберите ошибки ниже — обычно это маркировка, факт в ордере и паллет.";
-  else if (correct >= PASS - 8) verdict = "Пока слабо. Пройдите ещё раз: приёмка, кросс-докинг, стрейч и что делать в конце смены.";
-  else verdict = "Нужно повторно изучить регламент РЦ и пройти тест заново.";
+  if (correct >= pass) verdict = "Зачёт. Регламент РЦ, техника, упаковка и командные ситуации закрыты.";
+  else if (correct >= pass - 5) verdict = "Почти зачёт. Разберите ошибки ниже — часто это факт в ордере, техника Щорса и «не моя зона».";
+  else if (correct >= pass - 10) verdict = "Пока слабо. Пройдите ещё раз: приёмка, честность, 5S и чек-листы JAC/TOR.";
+  else verdict = "Нужно повторно изучить материалы склада в Академии и пройти тест заново.";
   el.verdict.textContent = verdict;
 
   if (report.honestyFails.length) {
     el.flagBanner.classList.remove("hidden");
     el.flagBanner.textContent =
-      `Красный флаг по честности (${report.honestyFails.length}). Даже при зачёте разберите с руководителем РЦ: излишек, факт в документах, хищение.`;
+      `Красный флаг по честности (${report.honestyFails.length}). Даже при зачёте разберите с руководителем РЦ: излишек, недостача, расходники, свой пересорт.`;
+  } else if (report.orderFails.length) {
+    el.flagBanner.classList.remove("hidden");
+    el.flagBanner.textContent =
+      `Срыв порядка (${report.orderFails.length}): проходы, эвакуация или 5S. Имеет смысл разобрать на планёрке.`;
   } else if (report.fatigueFails.length) {
     el.flagBanner.classList.remove("hidden");
     el.flagBanner.textContent =
-      `Срыв процесса на усталости (${report.fatigueFails.length}): в конце смены выбран «и так сойдёт». Имеет смысл разобрать на планёрке.`;
+      `Срыв процесса на усталости (${report.fatigueFails.length}): выбран «и так сойдёт». Имеет смысл разобрать на планёрке.`;
   } else {
     el.flagBanner.classList.add("hidden");
     el.flagBanner.textContent = "";
@@ -340,7 +411,7 @@ function grade() {
   el.summaryCards.innerHTML = `
     <div class="summary-card ok"><span class="label">Верно</span><span class="value">${correct}</span></div>
     <div class="summary-card bad"><span class="label">Ошибки</span><span class="value">${wrong}</span></div>
-    <div class="summary-card"><span class="label">Норма</span><span class="value">${PASS}/${total}</span></div>
+    <div class="summary-card"><span class="label">Норма</span><span class="value">${pass}/${total}</span></div>
     <div class="summary-card"><span class="label">${escapeHtml(profile.position)}</span><span class="value">${pct}%</span></div>
   `;
 
@@ -371,7 +442,28 @@ function grade() {
 
   show("result");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  sendResultEmail(report);
+  persistResult(report);
+}
+
+async function persistResult(report) {
+  el.mailStatus.className = "mail-status";
+  el.mailStatus.hidden = false;
+  el.mailStatus.textContent = "Сохраняем все ответы в Академии…";
+
+  let academyOk = false;
+  try {
+    academyOk = await saveToAcademy(report);
+  } catch (err) {
+    console.warn("Академия /api/results:", err);
+  }
+
+  if (academyOk) {
+    el.mailStatus.className = "mail-status ok";
+    el.mailStatus.textContent = "Все ответы сохранены в Академии (журнал /admin/results).";
+    return;
+  }
+
+  await sendResultEmail(report);
 }
 
 el.form.addEventListener("submit", (e) => {
